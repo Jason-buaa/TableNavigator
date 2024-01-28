@@ -9,8 +9,8 @@ Office.onReady((info) => {
   if (info.host === Office.HostType.Excel) {
     document.getElementById("sideload-msg").style.display = "none";
     document.getElementById("app-body").style.display = "flex";
-    //document.getElementById("run").onclick = run;
     document.getElementById("setup").onclick = setup;
+    document.getElementById("list-tableNames").onclick = listTableNames;
   }
 });
 
@@ -69,6 +69,29 @@ async function setup() {
       await context.sync();
   });
 }
+
+
+
+async function listTableNames() {
+  await Excel.run(async (context) => {
+
+    let tables = context.workbook.tables;
+
+    // 加载表格的名称
+    tables.load("name");
+  
+    // 执行同步操作以获取加载的数据
+    return context.sync()
+      .then(function () {
+        // 输出表格的名称到控制台
+        for (var i = 0; i < tables.items.length; i++) {
+          console.log('Table Name '+ i+ ' ' + tables.items[i].name);
+        }
+      });
+  });
+}
+
+
 
 
 
