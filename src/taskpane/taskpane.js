@@ -11,12 +11,14 @@ Office.onReady((info) => {
     document.getElementById("app-body").style.display = "flex";
     document.getElementById("setup").onclick = setup;
     document.getElementById("list-tableNames").onclick = listTableNames;
+    document.getElementById("save-conditionalFormat").onclick = saveConditionalFormats;
     document.getElementById("enable-CellHighlight").onclick = enableCellHighlight;
     document.getElementById("disable-CellHighlight").onclick = disableCellHighlight;
   }
 });
 
 async function enableCellHighlight(){
+  await saveConditionalFormats();
   await Excel.run(async (context) => {
     let workbook = context.workbook;
     cellHightHandlerResult = workbook.onSelectionChanged.add(CellHighlightHandler);
@@ -32,6 +34,66 @@ async function disableCellHighlight(){
     cellHightHandlerResult = null;
   });
 }
+async function saveConditionalFormats() {
+  // 用于存储条件格式的数据结构，可以根据需求选择数组、对象等
+  let savedFormats = {};
+
+  await Excel.run(async (context) => {
+    let workbook = context.workbook;
+    let worksheets = workbook.worksheets;
+    worksheets.load("items/name");
+
+    // 同步以获取工作表信息
+    await context.sync();
+
+    // 遍历每个工作表
+    for (let i = 0; i < worksheets.items.length; i++) {
+      let sheet = worksheets.items[i];
+
+      // 获取工作表上范围的条件格式
+      let conditionalFormats = sheet.getUsedRange().conditionalFormats;
+      conditionalFormats.load("items");
+
+      // 同步以获取条件格式信息
+      await context.sync();
+
+      // 如果有条件格式，则保存到数据结构中
+      if (conditionalFormats.items.length > 0) {
+        savedFormats[sheet.name] = conditionalFormats.items.map((format) => {
+          let savedFormat = {
+            type: format.type,
+          };
+
+          // 根据条件格式类型选择性地保存属性
+          switch (format.type) {
+            case Excel.ConditionalFormatType.custom:
+              savedFormat.rule = format.custom.rule.formula;
+              savedFormat.fill = format.custom.format.fill.color;
+              savedFormat.fontColor = format.custom.format.font.color;
+              savedFormat.borders = format.custom.format.borders;
+              break;
+            case Excel.ConditionalFormatType.dataBar:
+              savedFormat.dataBar = format.dataBar;
+              break;
+            case Excel.ConditionalFormatType.colorScale:
+              savedFormat.colorScale = format.colorScale;
+              break;
+            case Excel.ConditionalFormatType.iconSet:
+              savedFormat.iconSet = format.iconSet;
+              break;
+            // 可根据需要添加其他条件格式类型的处理
+          }
+
+          return savedFormat;
+        });
+      }
+    }
+  });
+
+  // 在控制台输出保存的条件格式信息（可根据需求将其发送到服务器等）
+  console.log(savedFormats);
+}
+
 async function clearMeekouFormat() {
   await Excel.run(async (context) => {
     let workbook = context.workbook;
