@@ -108,7 +108,7 @@ async function clearMeekouFormat() {
   });
 }
 async function CellHighlightHandler(){
-      await clearMeekouFormat();
+      //await clearMeekouFormat();
       await Excel.run(async (context) => {
         let workbook = context.workbook;
         let sheets = workbook.worksheets;
@@ -117,17 +117,17 @@ async function CellHighlightHandler(){
         sheets.load("items");
         await context.sync();
         console.log(sheets.items);
-        console.log(`=ROW()= + ${selection.rowIndex + 1} + N("${"Meekou"}")`);
+        console.log(`=ROW()= + ${selection.rowIndex + 1})`);
         // add new conditional format
         await context.sync();
         let rowConditionalFormat = selection.getEntireRow().conditionalFormats.add(Excel.ConditionalFormatType.custom);
         rowConditionalFormat.custom.format.fill.color = "green";
-        rowConditionalFormat.custom.rule.formula = `=ROW()= + ${selection.rowIndex + 1} + N("${"Meekou"}")`;
+        rowConditionalFormat.custom.rule.formula = `=ROW()=  ${selection.rowIndex + 1}`;
         let columnConditionalFormat = selection
           .getEntireColumn()
           .conditionalFormats.add(Excel.ConditionalFormatType.custom);
         columnConditionalFormat.custom.format.fill.color = "green";
-        columnConditionalFormat.custom.rule.formula = `=Column()= + ${selection.columnIndex + 1} + N("${"Meekou"}")`;
+        columnConditionalFormat.custom.rule.formula = `=Column()=  ${selection.columnIndex + 1}`;
         await context.sync();
       });
     }
